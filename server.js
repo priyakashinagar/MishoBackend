@@ -28,6 +28,11 @@ app.get('/api/items', (req, res) => {
 // Get item by ID
 app.get('/api/items/:id', (req, res) => {
   const id = parseInt(req.params.id);
+  
+  if (isNaN(id)) {
+    return res.status(400).json({ success: false, message: 'Invalid ID parameter' });
+  }
+  
   const item = items.find(i => i.id === id);
   
   if (!item) {
@@ -41,14 +46,14 @@ app.get('/api/items/:id', (req, res) => {
 app.post('/api/items', (req, res) => {
   const { name, description } = req.body;
   
-  if (!name) {
-    return res.status(400).json({ success: false, message: 'Name is required' });
+  if (!name || typeof name !== 'string' || name.trim() === '') {
+    return res.status(400).json({ success: false, message: 'Valid name is required' });
   }
   
   const newItem = {
     id: nextId++,
-    name,
-    description: description || '',
+    name: name.trim(),
+    description: description ? description.trim() : '',
     createdAt: new Date().toISOString()
   };
   
@@ -59,6 +64,11 @@ app.post('/api/items', (req, res) => {
 // Update item
 app.put('/api/items/:id', (req, res) => {
   const id = parseInt(req.params.id);
+  
+  if (isNaN(id)) {
+    return res.status(400).json({ success: false, message: 'Invalid ID parameter' });
+  }
+  
   const { name, description } = req.body;
   const itemIndex = items.findIndex(i => i.id === id);
   
@@ -66,8 +76,15 @@ app.put('/api/items/:id', (req, res) => {
     return res.status(404).json({ success: false, message: 'Item not found' });
   }
   
-  if (name) items[itemIndex].name = name;
-  if (description !== undefined) items[itemIndex].description = description;
+  if (name !== undefined) {
+    if (typeof name !== 'string' || name.trim() === '') {
+      return res.status(400).json({ success: false, message: 'Valid name is required' });
+    }
+    items[itemIndex].name = name.trim();
+  }
+  if (description !== undefined) {
+    items[itemIndex].description = typeof description === 'string' ? description.trim() : '';
+  }
   items[itemIndex].updatedAt = new Date().toISOString();
   
   res.json({ success: true, data: items[itemIndex] });
@@ -76,6 +93,11 @@ app.put('/api/items/:id', (req, res) => {
 // Delete item
 app.delete('/api/items/:id', (req, res) => {
   const id = parseInt(req.params.id);
+  
+  if (isNaN(id)) {
+    return res.status(400).json({ success: false, message: 'Invalid ID parameter' });
+  }
+  
   const itemIndex = items.findIndex(i => i.id === id);
   
   if (itemIndex === -1) {
