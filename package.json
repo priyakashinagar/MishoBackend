@@ -1,0 +1,21 @@
+{
+  "name": "misho-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Misho application",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "backend",
+    "api",
+    "misho"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  }
+}
