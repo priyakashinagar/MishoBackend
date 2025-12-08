@@ -180,7 +180,18 @@ exports.updateProfile = async (req, res) => {
     }
 
     const updateData = {};
-    if (shopName) updateData.shopName = shopName;
+    
+    // Check if shopName is being changed and if it's unique
+    if (shopName && shopName !== seller.shopName) {
+      const existingShop = await Seller.findOne({ shopName: shopName });
+      if (existingShop) {
+        return sendError(res, 400, 'Store name already taken. Please choose a different name.');
+      }
+      updateData.shopName = shopName;
+    } else if (shopName) {
+      updateData.shopName = shopName;
+    }
+    
     if (description) updateData.description = description;
     if (businessAddress) updateData.businessAddress = businessAddress;
     if (categories) updateData.categories = categories;
