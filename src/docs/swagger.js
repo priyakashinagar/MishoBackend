@@ -91,6 +91,10 @@ const options = {
       {
         name: 'Earnings',
         description: 'Seller earnings endpoints'
+      },
+      {
+        name: 'Catalog',
+        description: 'Catalog upload endpoints (Bulk & Single)'
       }
     ],
     components: {

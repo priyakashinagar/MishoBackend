@@ -29,6 +29,7 @@ const earningsRoutes = require('../routes/earningsRoutes');
 const cartRoutes = require('../routes/cartRoutes');
 const wishlistRoutes = require('../routes/wishlistRoutes');
 const ratingRoutes = require('../routes/ratingRoutes');
+const catalogRoutes = require('../routes/catalogRoutes');
 
 /**
  * Configure Express application with middleware and routes
@@ -80,8 +81,12 @@ const configureApp = (app) => {
   // Compression middleware
   app.use(compression());
 
-  // Serve static files from uploads directory
-  app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
+  // Serve static files from uploads directory with CORS headers
+  app.use('/uploads', (req, res, next) => {
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    next();
+  }, express.static(path.join(__dirname, '../../uploads')));
 
   // Logging middleware
   if (process.env.NODE_ENV === 'development') {
@@ -135,6 +140,7 @@ const configureApp = (app) => {
   app.use(`/api/${API_VERSION}/cart`, cartRoutes);
   app.use(`/api/${API_VERSION}/wishlist`, wishlistRoutes);
   app.use(`/api/${API_VERSION}/rating`, ratingRoutes);
+  app.use(`/api/catalog`, catalogRoutes);
 
   // 404 handler
   app.use('*', (req, res) => {
