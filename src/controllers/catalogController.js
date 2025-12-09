@@ -356,6 +356,10 @@ exports.publishCatalogItem = async (req, res) => {
  */
 exports.bulkImageUpload = async (req, res) => {
   try {
+    console.log('Bulk image upload request received');
+    console.log('Files:', req.files ? req.files.length : 0);
+    console.log('Body:', req.body);
+    
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({
         success: false,
@@ -383,6 +387,8 @@ exports.bulkImageUpload = async (req, res) => {
       mimetype: file.mimetype
     }));
 
+    console.log('Images processed successfully:', uploadedImages.length);
+
     res.status(200).json({
       success: true,
       message: `${uploadedImages.length} images uploaded successfully`,
@@ -394,6 +400,7 @@ exports.bulkImageUpload = async (req, res) => {
 
   } catch (error) {
     console.error('Bulk image upload error:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({
       success: false,
       message: 'Failed to upload images',

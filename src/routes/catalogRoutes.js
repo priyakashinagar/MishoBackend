@@ -8,11 +8,21 @@ const router = express.Router();
 const catalogController = require('../controllers/catalogController');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
+
+// Ensure upload directories exist
+const ensureDirectoryExists = (directory) => {
+  if (!fs.existsSync(directory)) {
+    fs.mkdirSync(directory, { recursive: true });
+  }
+};
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/catalogs/');
+    const dir = 'uploads/catalogs/';
+    ensureDirectoryExists(dir);
+    cb(null, dir);
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -46,7 +56,9 @@ const upload = multer({
 // Configure multer for image uploads
 const imageStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/products/');
+    const dir = 'uploads/products/';
+    ensureDirectoryExists(dir);
+    cb(null, dir);
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
