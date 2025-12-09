@@ -377,7 +377,7 @@ exports.bulkImageUpload = async (req, res) => {
     }
 
     // Process uploaded images
-    const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
+    const baseUrl = process.env.BASE_URL || process.env.RENDER_EXTERNAL_URL || 'http://localhost:5000';
     const uploadedImages = req.files.map(file => ({
       filename: file.filename,
       originalName: file.originalname,
