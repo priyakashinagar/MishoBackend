@@ -30,6 +30,14 @@ const cartRoutes = require('../routes/cartRoutes');
 const wishlistRoutes = require('../routes/wishlistRoutes');
 const ratingRoutes = require('../routes/ratingRoutes');
 const catalogRoutes = require('../routes/catalogRoutes');
+const inventoryRoutes = require('../routes/inventoryRoutes');
+const paymentRoutes = require('../routes/paymentRoutes');
+const warehouseRoutes = require('../routes/warehouseRoutes');
+const claimRoutes = require('../routes/claimRoutes');
+const supportRoutes = require('../routes/supportRoutes');
+const qualityRoutes = require('../routes/qualityRoutes');
+const pricingRoutes = require('../routes/pricingRoutes');
+const kycRoutes = require('../routes/kycRoutes');
 
 /**
  * Configure Express application with middleware and routes
@@ -140,6 +148,14 @@ const configureApp = (app) => {
   app.use(`/api/${API_VERSION}/cart`, cartRoutes);
   app.use(`/api/${API_VERSION}/wishlist`, wishlistRoutes);
   app.use(`/api/${API_VERSION}/rating`, ratingRoutes);
+  app.use(`/api/${API_VERSION}/inventory`, inventoryRoutes);
+  app.use(`/api/${API_VERSION}/payments`, paymentRoutes);
+  app.use(`/api/${API_VERSION}/warehouses`, warehouseRoutes);
+  app.use(`/api/${API_VERSION}/claims`, claimRoutes);
+  app.use(`/api/${API_VERSION}/support`, supportRoutes);
+  app.use(`/api/${API_VERSION}/quality`, qualityRoutes);
+  app.use(`/api/${API_VERSION}/pricing`, pricingRoutes);
+  app.use(`/api/${API_VERSION}/kyc`, kycRoutes);
   app.use(`/api/catalog`, catalogRoutes);
 
   // 404 handler
