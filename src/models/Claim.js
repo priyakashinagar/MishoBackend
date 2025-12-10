@@ -48,16 +48,14 @@ const claimSchema = new mongoose.Schema(
       enum: ['low', 'medium', 'high', 'urgent'],
       default: 'medium',
     },
-    attachments: [
-      {
-        url: String,
-        type: String,
-        uploadedAt: {
-          type: Date,
-          default: Date.now,
-        },
+    attachments: [{
+      url: String,
+      type: String,
+      uploadedAt: {
+        type: Date,
+        default: Date.now,
       },
-    ],
+    }],
     timeline: [
       {
         status: String,
