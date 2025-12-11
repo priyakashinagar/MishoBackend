@@ -36,8 +36,12 @@ async function main() {
       process.exit(1);
     }
 
-    // Use first seller
-    const seller = sellers[0];
+    // Use lovelyStore seller (the currently logged-in seller)
+    const seller = await Seller.findById('69315198fc205813950427f4');
+    if (!seller) {
+      log('red', '\n✗ Seller "lovelyStore" not found!');
+      process.exit(1);
+    }
     log('cyan', `\n=== Using Seller: ${seller.shopName} (${seller._id}) ===\n`);
 
     // Get products for this seller

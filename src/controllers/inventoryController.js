@@ -13,8 +13,10 @@ const Product = require('../models/Product');
 exports.getAllInventory = async (req, res) => {
   try {
     const sellerId = req.seller?._id || req.user?.seller?._id || req.query.sellerId;
+    const isAdmin = req.user?.role === 'admin' || req.admin;
     
-    if (!sellerId) {
+    // Admin can view all inventory, sellers need their own ID
+    if (!sellerId && !isAdmin) {
       return res.status(400).json({
         success: false,
         message: 'Seller ID required',
@@ -24,14 +26,22 @@ exports.getAllInventory = async (req, res) => {
     const { status, search, page = 1, limit = 20 } = req.query;
     const skip = (page - 1) * limit;
 
-    // Build query
-    const query = { sellerId };
+    // Build query - admin sees all, seller sees only their own
+    const query = {};
+    if (sellerId && !isAdmin) {
+      query.sellerId = sellerId;
+    } else if (sellerId && isAdmin) {
+      // Admin can filter by specific seller if needed
+      query.sellerId = sellerId;
+    }
+    
     if (status && status !== 'all') {
       query.status = status;
     }
 
     let inventory = await Inventory.find(query)
       .populate('productId', 'name images category')
+      .populate('sellerId', 'shopName businessDetails')
       .populate('warehouse', 'name location')
       .sort({ updatedAt: -1 })
       .skip(skip)
@@ -47,12 +57,13 @@ exports.getAllInventory = async (req, res) => {
 
     const total = await Inventory.countDocuments(query);
 
-    // Calculate stats
+    // Calculate stats - for admin use query (all/filtered), for seller use sellerId
+    const statsQuery = isAdmin && !sellerId ? {} : query;
     const stats = {
       total: total,
-      inStock: await Inventory.countDocuments({ sellerId, status: 'in-stock' }),
-      lowStock: await Inventory.countDocuments({ sellerId, status: 'low-stock' }),
-      outOfStock: await Inventory.countDocuments({ sellerId, status: 'out-of-stock' }),
+      inStock: await Inventory.countDocuments({ ...statsQuery, status: 'in-stock' }),
+      lowStock: await Inventory.countDocuments({ ...statsQuery, status: 'low-stock' }),
+      outOfStock: await Inventory.countDocuments({ ...statsQuery, status: 'out-of-stock' }),
       totalValue: inventory.reduce((sum, item) => sum + (item.stock.total * (item.productId?.price || 0)), 0),
     };
 

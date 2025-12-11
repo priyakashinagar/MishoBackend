@@ -39,12 +39,12 @@ const options = {
     },
     servers: [
       {
-        url: 'http://localhost:5000',
-        description: 'Development server'
+        url: 'https://meesho-backend-api.onrender.com',
+        description: 'Production server (Deployed)'
       },
       {
-        url: 'https://api.meesho.com',
-        description: 'Production server'
+        url: 'http://localhost:5000',
+        description: 'Local development server'
       }
     ],
     tags: [

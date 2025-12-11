@@ -8,6 +8,7 @@ const Seller = require('../models/Seller');
 const Product = require('../models/Product');
 const Order = require('../models/Order');
 const Rating = require('../models/Rating');
+const PayoutTransaction = require('../models/PayoutTransaction');
 const { sendSuccess, sendError, sendPaginatedResponse } = require('../utils/responseHandler');
 const logger = require('../utils/logger');
 
@@ -1215,5 +1216,193 @@ exports.getEarnings = async (req, res) => {
   } catch (error) {
     logger.error(`Get admin earnings error: ${error.message}`);
     sendError(res, 500, 'Error retrieving admin earnings');
+  }
+};
+
+/**
+ * Get all pending payouts (admin view)
+ * @route GET /api/v1/admin/payouts/pending
+ * @access Private/Admin
+ */
+exports.getAllPendingPayouts = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, sellerId } = req.query;
+    const skip = (page - 1) * limit;
+
+    // Build query - admin can filter by seller or see all
+    const query = {
+      status: 'delivered',
+      'payout.status': 'upcoming',
+      'earnings.netSellerEarning': { $gt: 0 }
+    };
+
+    if (sellerId) {
+      query['items.seller'] = sellerId;
+    }
+
+    // Get orders with upcoming payout status
+    const orders = await Order.find(query)
+      .populate('user', 'name email phone')
+      .populate('items.seller', 'shopName businessDetails')
+      .populate('items.product', 'name images')
+      .sort({ deliveredAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit))
+      .lean();
+
+    const total = await Order.countDocuments(query);
+
+    // Calculate total upcoming payout per seller
+    const sellerPayouts = {};
+    orders.forEach(order => {
+      if (order.items) {
+        order.items.forEach(item => {
+          const sellerId = item.seller?._id?.toString();
+          if (sellerId) {
+            if (!sellerPayouts[sellerId]) {
+              sellerPayouts[sellerId] = {
+                sellerId,
+                shopName: item.seller?.shopName || item.seller?.businessDetails?.businessName || 'Unknown',
+                totalAmount: 0,
+                orderCount: 0
+              };
+            }
+            sellerPayouts[sellerId].totalAmount += (order.earnings?.netSellerEarning || 0);
+            sellerPayouts[sellerId].orderCount += 1;
+          }
+        });
+      }
+    });
+
+    const totalAmount = orders.reduce((sum, order) => sum + (order.earnings?.netSellerEarning || 0), 0);
+
+    logger.info(`Admin fetched pending payouts: ${orders.length} orders`);
+
+    sendSuccess(res, 200, 'Pending payouts fetched successfully', { 
+      orders,
+      sellerPayouts: Object.values(sellerPayouts),
+      totalAmount: Math.round(totalAmount * 100) / 100,
+      pagination: {
+        page: parseInt(page),
+        pages: Math.ceil(total / limit),
+        total
+      }
+    });
+  } catch (error) {
+    logger.error(`Get admin pending payouts error: ${error.message}`);
+    sendError(res, 500, 'Error fetching pending payouts');
+  }
+};
+
+/**
+ * Get all payout history (admin view)
+ * @route GET /api/v1/admin/payouts/history
+ * @access Private/Admin
+ */
+exports.getAllPayoutHistory = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, status, sellerId } = req.query;
+    const skip = (page - 1) * limit;
+
+    const query = {};
+    if (status) query.status = status;
+    if (sellerId) query.seller = sellerId;
+
+    const transactions = await PayoutTransaction.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit))
+      .populate('seller', 'shopName businessDetails bankDetails')
+      .populate('orders', 'orderId pricing.itemsTotal earnings.netSellerEarning deliveredAt')
+      .lean();
+
+    const total = await PayoutTransaction.countDocuments(query);
+
+    // Calculate stats
+    const stats = {
+      totalPaid: await PayoutTransaction.aggregate([
+        { $match: { status: 'completed' } },
+        { $group: { _id: null, total: { $sum: '$amount' } } }
+      ]).then(r => r[0]?.total || 0),
+      totalPending: await PayoutTransaction.aggregate([
+        { $match: { status: 'pending' } },
+        { $group: { _id: null, total: { $sum: '$amount' } } }
+      ]).then(r => r[0]?.total || 0),
+      totalProcessing: await PayoutTransaction.aggregate([
+        { $match: { status: 'processing' } },
+        { $group: { _id: null, total: { $sum: '$amount' } } }
+      ]).then(r => r[0]?.total || 0),
+      completedCount: await PayoutTransaction.countDocuments({ status: 'completed' }),
+      pendingCount: await PayoutTransaction.countDocuments({ status: 'pending' }),
+      processingCount: await PayoutTransaction.countDocuments({ status: 'processing' })
+    };
+
+    logger.info(`Admin fetched payout history: ${transactions.length} transactions`);
+
+    sendSuccess(res, 200, 'Payout history fetched successfully', { 
+      transactions,
+      stats,
+      pagination: {
+        page: parseInt(page),
+        pages: Math.ceil(total / limit),
+        total
+      }
+    });
+  } catch (error) {
+    logger.error(`Get admin payout history error: ${error.message}`);
+    sendError(res, 500, 'Error fetching payout history');
+  }
+};
+
+/**
+ * Get wallet details (admin view - all sellers or specific seller)
+ * @route GET /api/v1/admin/wallet
+ * @access Private/Admin
+ */
+exports.getAllWallets = async (req, res) => {
+  try {
+    const { sellerId } = req.query;
+
+    if (sellerId) {
+      // Get specific seller wallet
+      const seller = await Seller.findById(sellerId).select('shopName businessDetails wallet');
+      if (!seller) {
+        return sendError(res, 404, 'Seller not found');
+      }
+
+      sendSuccess(res, 200, 'Wallet details fetched successfully', {
+        seller: {
+          _id: seller._id,
+          shopName: seller.shopName || seller.businessDetails?.businessName,
+          wallet: seller.wallet
+        }
+      });
+    } else {
+      // Get all sellers with wallet summary
+      const sellers = await Seller.find()
+        .select('shopName businessDetails wallet')
+        .sort({ 'wallet.available': -1 })
+        .lean();
+
+      const summary = {
+        totalAvailable: sellers.reduce((sum, s) => sum + (s.wallet?.available || 0), 0),
+        totalPending: sellers.reduce((sum, s) => sum + (s.wallet?.pending || 0), 0),
+        totalEarnings: sellers.reduce((sum, s) => sum + (s.wallet?.totalEarnings || 0), 0),
+        totalWithdrawn: sellers.reduce((sum, s) => sum + (s.wallet?.totalWithdrawn || 0), 0),
+        sellerCount: sellers.length
+      };
+
+      sendSuccess(res, 200, 'All wallets fetched successfully', {
+        sellers: sellers.map(s => ({
+          _id: s._id,
+          shopName: s.shopName || s.businessDetails?.businessName,
+          wallet: s.wallet
+        })),
+        summary
+      });
+    }
+  } catch (error) {
+    logger.error(`Get admin wallets error: ${error.message}`);
+    sendError(res, 500, 'Error fetching wallet details');
   }
 };

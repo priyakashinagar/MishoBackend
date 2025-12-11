@@ -32,7 +32,11 @@ const {
   getKYCSubmissions,
   getSellerManagement,
   submitSupportTicket,
-  getEarnings
+  getEarnings,
+  // Payout routes
+  getAllPendingPayouts,
+  getAllPayoutHistory,
+  getAllWallets
 } = require('../controllers/adminController');
 const { protect, authorize } = require('../middlewares/auth');
 
@@ -468,6 +472,11 @@ router.get('/payments', getPayments);
 
 // Earnings routes
 router.get('/earnings', getEarnings);
+
+// Payout routes (admin view of all seller payouts)
+router.get('/payouts/pending', getAllPendingPayouts);
+router.get('/payouts/history', getAllPayoutHistory);
+router.get('/wallet', getAllWallets);
 
 // Reviews routes
 router.get('/reviews', getReviews);
