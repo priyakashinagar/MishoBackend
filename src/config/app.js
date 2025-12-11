@@ -48,7 +48,10 @@ const configureApp = (app) => {
   app.set('trust proxy', 1);
 
   // Security middleware
-  app.use(helmet());
+  app.use(helmet({
+    contentSecurityPolicy: false, // Disable CSP for Swagger UI
+    crossOriginEmbedderPolicy: false
+  }));
   
   // CORS configuration - Allow multiple origins
   const allowedOrigins = [
