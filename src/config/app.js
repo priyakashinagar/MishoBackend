@@ -56,6 +56,7 @@ const configureApp = (app) => {
     'http://localhost:5173',
     'http://localhost:5174',
     'http://localhost:5000', // Allow Swagger UI
+    'https://meesho-backend-api.onrender.com', // Production URL
     process.env.CLIENT_URL
   ].filter(Boolean);
 
@@ -73,7 +74,7 @@ const configureApp = (app) => {
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
   }));
 
   // Body parser middleware
