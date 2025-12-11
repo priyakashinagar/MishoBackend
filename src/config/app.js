@@ -59,7 +59,8 @@ const configureApp = (app) => {
     'http://localhost:5173',
     'http://localhost:5174',
     'http://localhost:5000', // Allow Swagger UI
-    'https://meesho-backend-api.onrender.com', // Production URL
+    'https://mishobackend.onrender.com', // Production URL
+    'https://meesho-backend-api.onrender.com', // Alternative production URL
     process.env.CLIENT_URL
   ].filter(Boolean);
 
