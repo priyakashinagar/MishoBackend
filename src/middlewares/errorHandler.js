@@ -6,6 +6,18 @@
 const logger = require('../utils/logger');
 
 /**
+ * Custom Error class for application errors
+ */
+class AppError extends Error {
+  constructor(message, statusCode) {
+    super(message);
+    this.statusCode = statusCode;
+    this.isOperational = true;
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
+
+/**
  * Error handler middleware
  * @param {Error} err - Error object
  * @param {Object} req - Express request object
@@ -76,4 +88,4 @@ const errorHandler = (err, req, res, next) => {
   });
 };
 
-module.exports = errorHandler;
+module.exports = { errorHandler, AppError };

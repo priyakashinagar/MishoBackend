@@ -13,7 +13,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const rateLimit = require('express-rate-limit');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('../docs/swagger');
-const errorHandler = require('../middlewares/errorHandler');
+const { errorHandler } = require('../middlewares/errorHandler');
 const logger = require('../utils/logger');
 const path = require('path');
 
