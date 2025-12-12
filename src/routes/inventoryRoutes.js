@@ -24,6 +24,8 @@ router.use(protect);
  *   get:
  *     summary: Get all inventory items for a seller
  *     tags: [Inventory]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: sellerId
@@ -49,6 +51,8 @@ router.use(protect);
  *     responses:
  *       200:
  *         description: Inventory items fetched successfully
+ *       401:
+ *         description: Unauthorized
  *       500:
  *         description: Server error
  */
@@ -60,6 +64,8 @@ router.get('/', inventoryController.getAllInventory);
  *   get:
  *     summary: Get low stock and out of stock items
  *     tags: [Inventory]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: sellerId
@@ -68,6 +74,8 @@ router.get('/', inventoryController.getAllInventory);
  *     responses:
  *       200:
  *         description: Low stock items fetched successfully
+ *       401:
+ *         description: Unauthorized
  *       500:
  *         description: Server error
  */
@@ -79,6 +87,8 @@ router.get('/alerts/low-stock', inventoryController.getLowStockItems);
  *   post:
  *     summary: Bulk update inventory stock
  *     tags: [Inventory]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -103,6 +113,8 @@ router.get('/alerts/low-stock', inventoryController.getLowStockItems);
  *     responses:
  *       200:
  *         description: Bulk update completed
+ *       401:
+ *         description: Unauthorized
  *       500:
  *         description: Server error
  */
@@ -114,6 +126,8 @@ router.post('/bulk-update', inventoryController.bulkStockUpdate);
  *   get:
  *     summary: Get inventory item by ID
  *     tags: [Inventory]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -123,6 +137,8 @@ router.post('/bulk-update', inventoryController.bulkStockUpdate);
  *     responses:
  *       200:
  *         description: Inventory item fetched successfully
+ *       401:
+ *         description: Unauthorized
  *       404:
  *         description: Inventory item not found
  *       500:
@@ -136,6 +152,8 @@ router.get('/:id', inventoryController.getInventoryById);
  *   post:
  *     summary: Create new inventory item
  *     tags: [Inventory]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -166,6 +184,8 @@ router.get('/:id', inventoryController.getInventoryById);
  *     responses:
  *       201:
  *         description: Inventory item created successfully
+ *       401:
+ *         description: Unauthorized
  *       500:
  *         description: Server error
  */
@@ -177,6 +197,8 @@ router.post('/', inventoryController.createInventory);
  *   put:
  *     summary: Update inventory stock
  *     tags: [Inventory]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -203,6 +225,8 @@ router.post('/', inventoryController.createInventory);
  *     responses:
  *       200:
  *         description: Stock updated successfully
+ *       401:
+ *         description: Unauthorized
  *       404:
  *         description: Inventory item not found
  *       500:
@@ -216,6 +240,8 @@ router.put('/:id/stock', inventoryController.updateStock);
  *   put:
  *     summary: Update inventory item
  *     tags: [Inventory]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -231,6 +257,8 @@ router.put('/:id/stock', inventoryController.updateStock);
  *     responses:
  *       200:
  *         description: Inventory updated successfully
+ *       401:
+ *         description: Unauthorized
  *       404:
  *         description: Inventory item not found
  *       500:
@@ -244,6 +272,8 @@ router.put('/:id', inventoryController.updateInventory);
  *   delete:
  *     summary: Delete inventory item
  *     tags: [Inventory]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -253,6 +283,8 @@ router.put('/:id', inventoryController.updateInventory);
  *     responses:
  *       200:
  *         description: Inventory item deleted successfully
+ *       401:
+ *         description: Unauthorized
  *       404:
  *         description: Inventory item not found
  *       500:

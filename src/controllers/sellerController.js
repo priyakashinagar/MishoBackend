@@ -101,10 +101,7 @@ exports.createProfile = async (req, res) => {
     
     // Check if seller already exists
     const existingSeller = await Seller.findOne({ user: userId });
-    if (existingSeller) {
-      return sendSuccess(res, 200, 'Seller profile already exists', { seller: existingSeller });
-    }
-
+    
     const { 
       shopName, 
       businessType, 
@@ -119,12 +116,40 @@ exports.createProfile = async (req, res) => {
       categories 
     } = req.body;
 
-    // Check if shop name is unique
+    // Check if shop name is unique (excluding current seller's shop name)
     if (shopName) {
-      const existingShop = await Seller.findOne({ shopName: shopName });
+      const existingShop = await Seller.findOne({ 
+        shopName: shopName,
+        _id: { $ne: existingSeller?._id } // Exclude current seller
+      });
       if (existingShop) {
         return sendError(res, 400, 'This store name is already taken. Please choose a different name.');
       }
+    }
+
+    // If seller exists, update the profile
+    if (existingSeller) {
+      const updateData = {};
+      
+      if (shopName) updateData.shopName = shopName;
+      if (businessType) updateData.businessType = businessType;
+      if (description) updateData.description = description;
+      if (businessAddress || address) updateData.businessAddress = businessAddress || address;
+      if (bankDetails) updateData.bankDetails = bankDetails;
+      if (kycDocuments) updateData.kycDocuments = kycDocuments;
+      if (categories) updateData.categories = categories;
+      
+      const updatedSeller = await Seller.findByIdAndUpdate(
+        existingSeller._id,
+        updateData,
+        { new: true, runValidators: true }
+      );
+      
+      logger.info(`Seller profile updated for user: ${userId}`);
+      return sendSuccess(res, 200, 'Seller profile updated successfully', { 
+        seller: updatedSeller,
+        sellerId: updatedSeller._id 
+      });
     }
 
     // Use businessAddress if provided, otherwise use address
@@ -135,7 +160,7 @@ exports.createProfile = async (req, res) => {
       pincode: '000000'
     };
 
-    // Create seller profile
+    // Create new seller profile
     const seller = await Seller.create({
       user: userId,
       shopName: shopName || 'My Store',

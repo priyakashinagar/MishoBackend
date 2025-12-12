@@ -6,6 +6,7 @@
 const express = require('express');
 const router = express.Router();
 const catalogController = require('../controllers/catalogController');
+const { protect, authorize } = require('../middlewares/auth');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -185,6 +186,8 @@ const imageUpload = multer({
  *   post:
  *     summary: Bulk upload products from Excel/CSV file
  *     tags: [Catalog]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -227,10 +230,12 @@ const imageUpload = multer({
  *                         type: object
  *       400:
  *         description: Bad request - Invalid file or missing data
+ *       401:
+ *         description: Unauthorized
  *       500:
  *         description: Server error
  */
-router.post('/bulk-upload', upload.single('file'), catalogController.bulkCatalogUpload);
+router.post('/bulk-upload', protect, authorize('seller', 'admin'), upload.single('file'), catalogController.bulkCatalogUpload);
 
 /**
  * @swagger
@@ -238,6 +243,8 @@ router.post('/bulk-upload', upload.single('file'), catalogController.bulkCatalog
  *   post:
  *     summary: Upload multiple product images
  *     tags: [Catalog]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -260,10 +267,12 @@ router.post('/bulk-upload', upload.single('file'), catalogController.bulkCatalog
  *         description: Images uploaded successfully
  *       400:
  *         description: No images provided
+ *       401:
+ *         description: Unauthorized
  *       500:
  *         description: Server error
  */
-router.post('/bulk-image-upload', imageUpload.array('images', 20), catalogController.bulkImageUpload);
+router.post('/bulk-image-upload', protect, authorize('seller', 'admin'), imageUpload.array('images', 20), catalogController.bulkImageUpload);
 
 /**
  * @swagger
@@ -271,6 +280,8 @@ router.post('/bulk-image-upload', imageUpload.array('images', 20), catalogContro
  *   post:
  *     summary: Upload a single product
  *     tags: [Catalog]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -328,10 +339,12 @@ router.post('/bulk-image-upload', imageUpload.array('images', 20), catalogContro
  *                   $ref: '#/components/schemas/CatalogItem'
  *       400:
  *         description: Bad request
+ *       401:
+ *         description: Unauthorized
  *       500:
  *         description: Server error
  */
-router.post('/single-upload', catalogController.singleProductUpload);
+router.post('/single-upload', protect, authorize('seller', 'admin'), catalogController.singleProductUpload);
 
 /**
  * @swagger
@@ -486,6 +499,6 @@ router.delete('/item/:id', catalogController.deleteCatalogItem);
  *       500:
  *         description: Server error
  */
-router.post('/publish/:id', catalogController.publishCatalogItem);
+router.post('/publish/:id', protect, authorize('seller', 'admin'), catalogController.publishCatalogItem);
 
 module.exports = router;

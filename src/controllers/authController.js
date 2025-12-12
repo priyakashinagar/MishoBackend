@@ -420,18 +420,28 @@ exports.directLogin = async (req, res) => {
         sellerId = seller._id;
         sellerProfile = seller;
         
-        // Check if seller profile is incomplete (no shopName or businessAddress)
-        const hasShopName = seller.shopName && seller.shopName !== 'My Store' && seller.shopName.trim() !== '';
+        // Check if seller profile is incomplete
+        const hasShopName = seller.shopName && 
+                           seller.shopName !== 'My Store' && 
+                           seller.shopName.toLowerCase() !== 'my store' &&
+                           seller.shopName.trim() !== '';
         const hasAddress = seller.businessAddress && 
                           seller.businessAddress.addressLine1 && 
-                          seller.businessAddress.addressLine1 !== 'Address';
+                          seller.businessAddress.addressLine1 !== 'Address' &&
+                          seller.businessAddress.addressLine1.trim() !== '';
         
-        if (!hasShopName || !hasAddress) {
+        // Profile is complete if both shop name and address exist
+        if (hasShopName && hasAddress) {
+          requiresOnboarding = false;
+          console.log(`✅ Seller profile complete - Shop: ${seller.shopName}, Address: ${seller.businessAddress.addressLine1}`);
+        } else {
           requiresOnboarding = true;
+          console.log(`⚠️ Seller profile incomplete - Shop: ${seller.shopName}, Address: ${seller.businessAddress?.addressLine1}`);
         }
       } else {
         // User is seller but no seller profile exists
         requiresOnboarding = true;
+        console.log(`⚠️ No seller profile found for user: ${user._id}`);
       }
     }
 
@@ -583,17 +593,27 @@ exports.verifyOTP = async (req, res) => {
         userData.sellerId = seller._id;
         
         // Check if seller profile is incomplete
-        const hasShopName = seller.shopName && seller.shopName !== 'My Store' && seller.shopName.trim() !== '';
+        const hasShopName = seller.shopName && 
+                           seller.shopName !== 'My Store' && 
+                           seller.shopName.toLowerCase() !== 'my store' &&
+                           seller.shopName.trim() !== '';
         const hasAddress = seller.businessAddress && 
                           seller.businessAddress.addressLine1 && 
-                          seller.businessAddress.addressLine1 !== 'Address';
+                          seller.businessAddress.addressLine1 !== 'Address' &&
+                          seller.businessAddress.addressLine1.trim() !== '';
         
-        if (!hasShopName || !hasAddress) {
+        // Profile is complete if both shop name and address exist
+        if (hasShopName && hasAddress) {
+          requiresOnboarding = false;
+          console.log(`✅ Seller profile complete - Shop: ${seller.shopName}, Address: ${seller.businessAddress.addressLine1}`);
+        } else {
           requiresOnboarding = true;
+          console.log(`⚠️ Seller profile incomplete - Shop: ${seller.shopName}, Address: ${seller.businessAddress?.addressLine1}`);
         }
       } else {
         // User is seller but no seller profile exists
         requiresOnboarding = true;
+        console.log(`⚠️ No seller profile found for user: ${user._id}`);
       }
     }
 
